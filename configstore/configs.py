@@ -8,9 +8,10 @@ CONFIG_CACHE = threading.local()
 CONFIGS = dict()
 
 class ConfigurationInstance(object):
-    form = None
-    key = None
-    name = None
+    def __init__(self, key, name, form):
+        self.key = key
+        self.name = name
+        self.form = form
 
     def get_config(self):
         try:
@@ -23,7 +24,7 @@ class ConfigurationInstance(object):
     def get_form_builder(self):
         return lambda data, files, **kwargs: self.form(data, files, key=self.key, **kwargs)
 
-class LazyDictionary(dict):
+class LazyDictionary(dict): #this is one ugly class
     def __init__(self, loader):
         '''
         loader is a callable that returns a dictionary
@@ -31,8 +32,16 @@ class LazyDictionary(dict):
         self.loader = loader
         self.loaded = False
 
+    def items(self):
+        self._load()
+        return super(LazyDictionary, self).items()
+
+    def __iter__(self):
+        self._load()
+        return super(LazyDictionary, self).__iter__()
+    
     def __getitem__(self, key):
-        self._load()        
+        self._load()
         return super(LazyDictionary, self).__getitem__(key)
 
     def __contains__(self, key):
@@ -53,6 +62,6 @@ def get_config(key):
     The lazy object will be unique to each thread so values may be changed on the fly
     '''
     if not hasattr(CONFIG_CACHE, key):
-        setattr(CONFIG_CACHE, key, LazyDictionary(CONFIGS[key].get_config()))
+        setattr(CONFIG_CACHE, key, LazyDictionary(CONFIGS[key].get_config))
     return getattr(CONFIG_CACHE, key)
 

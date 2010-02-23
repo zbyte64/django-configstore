@@ -9,7 +9,9 @@ class Configuration(models.Model):
     _data = models.TextField(db_column='data')
     
     def get_data(self):
-        return simpeljson.loads(self._data)
+        if self._data:
+            return simplejson.loads(self._data)
+        return {}
     
     def set_data(self, data):
         self._data = simplejson.dumps(data, cls=DjangoJSONEncoder)

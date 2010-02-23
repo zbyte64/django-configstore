@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from distutils.core import setup, find_packages
+from setuptools import setup, find_packages
 
 LONG_DESCRIPTION = """
 An application to allow for other apps to easily store site based configurations
@@ -15,4 +15,8 @@ setup(name='django-configstore',
       author_email='zbyte64@gmail.com',
       url='',
       packages=find_packages(exclude=['ez_setup', 'test', 'tests']),
+      test_suite='tests.runtests.runtests',
+      install_requires=[
+        'django',
+      ],
      )

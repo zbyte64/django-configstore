@@ -24,6 +24,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
         obj = None
         context = {
             'title': _('Add %s') % force_unicode(opts.verbose_name),
+            'configs': CONFIGS,
             #'adminform': adminForm,
             'is_popup': request.REQUEST.has_key('_popup'),
             'show_delete': False,
@@ -47,11 +48,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'save_on_top': self.save_on_top,
         }
         context.update(extra_context or {})
-        #TODO insert our own template
         return render_to_response(self.change_form_template or [
-            "admin/%s/%s/change_form.html" % (app_label, opts.object_name.lower()),
-            "admin/%s/change_form.html" % app_label,
-            "admin/change_form.html"
+            "admin/%s/%s/add_form.html" % (app_label, opts.object_name.lower()),
+            "admin/%s/add_form.html" % app_label,
         ], context, context_instance=template.RequestContext(request))
 
 admin.site.register(Configuration, ConfigurationAdmin)
