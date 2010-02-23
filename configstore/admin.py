@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+from django import template
 
 from models import Configuration
 from configs import CONFIGS
@@ -13,7 +16,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
         return CONFIGS[request.GET['key']].get_form_builder()
     
     def add_view(self, request, form_url='', extra_context=None):
-        if key in request.GET:
+        if 'key' in request.GET:
             return super(ConfigurationAdmin, self).add_view(request, form_url, extra_context)
         #render a listing of links ?key={{configkey}}
         #consider can we also select the site?
