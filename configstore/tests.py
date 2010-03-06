@@ -48,4 +48,5 @@ class ConfigStoreTest(TestCase):
             FILES = dict()
             user = dummy_user()
         admin_entry.add_view(dummy_request())
+        #key=test
         

@@ -22,7 +22,10 @@ class ConfigurationInstance(object):
             return configuration.data
 
     def get_form_builder(self):
-        return lambda data, files, **kwargs: self.form(data, files, key=self.key, **kwargs)
+        def form_builder(*args, **kwargs):
+            kwargs['key'] = self.key
+            return self.form(*args, **kwargs)
+        return form_builder
 
 class LazyDictionary(dict): #this is one ugly class
     def __init__(self, loader):
