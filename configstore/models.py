@@ -17,6 +17,11 @@ class Configuration(models.Model):
         self._data = simplejson.dumps(data, cls=DjangoJSONEncoder)
         
     data = property(get_data, set_data)
+    
+    @property
+    def name(self):
+        from configs import CONFIGS
+        return CONFIGS[self.key].name
 
     def __unicode__(self):
         return '%s: %s' % (self.key, self.site)

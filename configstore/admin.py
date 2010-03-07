@@ -10,6 +10,13 @@ from models import Configuration
 from configs import CONFIGS
 
 class ConfigurationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'key', 'site')
+
+    def get_fieldsets(self, request, obj=None):
+        form_builder = self.get_form(request, obj)
+        print [(None, {'fields': form_builder().fields.keys()})]
+        return [(None, {'fields': form_builder().fields.keys()})]
+
     def get_form(self, request, obj=None, **kwargs):
         if obj:
             return CONFIGS[obj.key].get_form_builder()
