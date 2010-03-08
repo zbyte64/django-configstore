@@ -16,7 +16,4 @@ setup(name='django-configstore',
       url='',
       packages=find_packages(exclude=['ez_setup', 'test', 'tests']),
       test_suite='tests.runtests.runtests',
-      install_requires=[
-        'django',
-      ],
      )
