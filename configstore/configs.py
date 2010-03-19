@@ -4,7 +4,7 @@ from models import Configuration
 
 import threading
 
-CONFIG_CACHE = threading.local() #TODO: not lazy enough, threads get recycled in django!
+CONFIG_CACHE = threading.local()
 CONFIGS = dict()
 
 class ConfigurationInstance(object):
