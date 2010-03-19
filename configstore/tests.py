@@ -7,9 +7,10 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
 
-from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE
+from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE, CONFIGS
 from forms import ConfigurationForm
 from models import Configuration
+from listeners import nuke_cache
 
 from decimal import Decimal
 
@@ -75,3 +76,10 @@ class ConfigStoreTest(TestCase):
         self.assertEqual(Decimal('5.00'), config['amount'])
         self.assertTrue(isinstance(config['user'], User))
         self.assertEqual(test_user.pk, config['user'].pk)
+    
+    def test_nuke_cache(self):
+        get_config('test').items()
+        nuke_cache()
+        for key in CONFIGS.keys():
+            self.assertFalse(hasattr(CONFIG_CACHE, key))
+        
