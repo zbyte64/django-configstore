@@ -51,6 +51,10 @@ class LazyDictionary(dict): #this is one ugly class
         self._load()
         return super(LazyDictionary, self).__contains__(key)
 
+    def get(self, *args, **kwargs):
+        self._load()
+        return super(LazyDictionary, self).get(*args, **kwargs)
+
     def _load(self):
         if not self.loaded:
             self.loaded = True
