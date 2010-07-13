@@ -27,6 +27,12 @@ class ConfigurationInstance(object):
             return self.form(*args, **kwargs)
         return form_builder
 
+def _wrap(func_name):
+    def wrapper(self, *args, **kwargs):
+        self._load()
+        return getattr(super(LazyDictionary, self), func_name)(*args, **kwargs)
+    return wrapper
+
 class LazyDictionary(dict): #this is one ugly class
     def __init__(self, loader):
         '''
@@ -34,38 +40,21 @@ class LazyDictionary(dict): #this is one ugly class
         '''
         self.loader = loader
         self.loaded = False
-
-    def items(self):
-        self._load()
-        return super(LazyDictionary, self).items()
     
-    def keys(self):
-        self._load()
-        return super(LazyDictionary, self).keys()
-    
-    def values(self):
-        self._load()
-        return super(LazyDictionary, self).values()
-
-    def setdefault(self, *args):
-        self._load()
-        return super(LazyDictionary, self).setdefault(*args)
-
-    def __iter__(self):
-        self._load()
-        return super(LazyDictionary, self).__iter__()
-    
-    def __getitem__(self, key):
-        self._load()
-        return super(LazyDictionary, self).__getitem__(key)
-
-    def __contains__(self, key):
-        self._load()
-        return super(LazyDictionary, self).__contains__(key)
-
-    def get(self, *args, **kwargs):
-        self._load()
-        return super(LazyDictionary, self).get(*args, **kwargs)
+    items = _wrap('items')
+    keys = _wrap('keys')
+    values = _wrap('values')
+    setdefault = _wrap('setdefault')
+    update = _wrap('update')
+    pop = _wrap('pop')
+    popitem = _wrap('popitem')
+    get = _wrap('get')
+    __iter__ = _wrap('__iter__')
+    __getitem__ = _wrap('__getitem__')
+    __setitem__ = _wrap('__setitem__')
+    __contains__ = _wrap('__contains__')
+    __format__ = _wrap('__format__')
+    __str__ = _wrap('__str__')
 
     def _load(self):
         if not self.loaded:
