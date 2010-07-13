@@ -38,6 +38,18 @@ class LazyDictionary(dict): #this is one ugly class
     def items(self):
         self._load()
         return super(LazyDictionary, self).items()
+    
+    def keys(self):
+        self._load()
+        return super(LazyDictionary, self).keys()
+    
+    def values(self):
+        self._load()
+        return super(LazyDictionary, self).values()
+
+    def setdefault(self, *args):
+        self._load()
+        return super(LazyDictionary, self).setdefault(*args)
 
     def __iter__(self):
         self._load()
