@@ -49,6 +49,7 @@ class LazyDictionary(dict): #this is one ugly class
     pop = _wrap('pop')
     popitem = _wrap('popitem')
     get = _wrap('get')
+    copy = _wrap('copy')
     __iter__ = _wrap('__iter__')
     __getitem__ = _wrap('__getitem__')
     __setitem__ = _wrap('__setitem__')
