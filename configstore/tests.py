@@ -6,6 +6,7 @@ from django.core import urlresolvers
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django import forms
+from django.template import Template, Context
 
 from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE, CONFIGS
 from forms import ConfigurationForm
@@ -82,4 +83,16 @@ class ConfigStoreTest(TestCase):
         nuke_cache()
         for key in CONFIGS.keys():
             self.assertFalse(hasattr(CONFIG_CACHE, key))
-        
+    
+    def test_with_config_templatetag(self):
+        self.test_register_and_retrieve_config()
+        template_string = """
+        {% load configuration %}
+        {% withconfig "test" as testconfig %}
+            {{testconfig.setting1}}
+        {% endwithconfig %}
+        """
+        template = Template(template_string)
+        result = template.render(Context({}))
+        self.assertTrue('wooot' in result)
+
