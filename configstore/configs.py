@@ -40,22 +40,28 @@ class LazyDictionary(dict): #this is one ugly class
         '''
         self.loader = loader
         self.loaded = False
-    
-    items = _wrap('items')
-    keys = _wrap('keys')
-    values = _wrap('values')
-    setdefault = _wrap('setdefault')
-    update = _wrap('update')
-    pop = _wrap('pop')
-    popitem = _wrap('popitem')
-    get = _wrap('get')
-    copy = _wrap('copy')
-    __iter__ = _wrap('__iter__')
-    __getitem__ = _wrap('__getitem__')
-    __setitem__ = _wrap('__setitem__')
+
+    # TODO: Since Django likes to lazy we should consider looking if they have
+    # already done something like this.
     __contains__ = _wrap('__contains__')
     __format__ = _wrap('__format__')
+    __getitem__ = _wrap('__getitem__')
+    __iter__ = _wrap('__iter__')
+    __setitem__ = _wrap('__setitem__')
     __str__ = _wrap('__str__')
+    copy = _wrap('copy')
+    get = _wrap('get')
+    has_key = _wrap('has_key')
+    items = _wrap('items')
+    iteritems = _wrap('iteritems')
+    iterkeys = _wrap('iterkeys')
+    itervalues = _wrap('itervalues')
+    keys = _wrap('keys')
+    pop = _wrap('pop')
+    popitem = _wrap('popitem')
+    setdefault = _wrap('setdefault')
+    update = _wrap('update')
+    values = _wrap('values')
 
     def _load(self):
         if not self.loaded:
