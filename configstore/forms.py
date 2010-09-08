@@ -10,7 +10,11 @@ class ConfigurationForm(forms.ModelForm):
         self.key = kwargs.pop('key')
         super(ConfigurationForm, self).__init__(*args, **kwargs)
         if self.instance:
-            self.initial.update(self.instance.data)
+            initial = self.instance.data
+            for key, value in initial.items():
+                if hasattr(value, 'pk'):
+                    initial[key] = value.pk
+            self.initial.update(initial)
 
     def save(self, commit=True):
         instance = super(ConfigurationForm, self).save(False)

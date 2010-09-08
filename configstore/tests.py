@@ -76,6 +76,7 @@ class ConfigStoreTest(TestCase):
         form.save()
         self.assertNotEqual(0, len(get_config('testcomplex').items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
+        nuke_cache()
         config = get_config('testcomplex')
         self.assertTrue(isinstance(config['amount'], Decimal))
         self.assertEqual(Decimal('5.00'), config['amount'])
