@@ -85,10 +85,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.sessions',
     'configstore',
+    'example_app',
 )
 
-
-try:
-    from localsettings import *
-except:
-    pass
