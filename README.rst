@@ -9,12 +9,12 @@ Config Store
 Installation
 ============
 
-# Add the 'configstore' directory to your Python path
+#. Add the 'configstore' directory to your Python path
 
-# Add 'configstore' to your INSTALLED_APPS in your settings file
+#. Add 'configstore' to your INSTALLED_APPS in your settings file
 
-Implementation
-==============
+Usage
+=====
 
 Define your configuration form somewhere::
 
