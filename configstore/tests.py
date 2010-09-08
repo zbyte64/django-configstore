@@ -5,6 +5,7 @@ from django.test.client import Client
 from django.core import urlresolvers
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django import forms
 from django.template import Template, Context
 
@@ -24,6 +25,8 @@ class TestComplexConfigurationForm(ConfigurationForm):
     user = forms.ModelChoiceField(queryset=User.objects.all())
 
 class ConfigStoreTest(TestCase):
+    urls = 'configstore.test_urls'
+    
     def setUp(self):
         if hasattr(CONFIG_CACHE, 'test'):
             delattr(CONFIG_CACHE, 'test')
@@ -47,22 +50,23 @@ class ConfigStoreTest(TestCase):
         lazydictionary_pre = get_config('test')
         self.assertEqual(0, len(lazydictionary_pre.items()))
     
+    def login(self):
+        admin_user = User.objects.create(username='configadmin', is_staff=True, is_superuser=True)
+        admin_user.set_password('configadmin')
+        admin_user.save()
+        self.client.login(username=admin_user.username, password='configadmin')
+
     def test_configstore_admin(self):
-        admin.autodiscover()
-        admin_entry = admin.site._registry[Configuration]
-        class dummy_user(object):
-            has_perm = lambda *x: False
-            get_and_delete_messages = lambda *x: []
-            
-        class dummy_request(object):
-            REQUEST = dict()
-            POST = dict()
-            GET = dict()
-            FILES = dict()
-            user = dummy_user()
-        admin_entry.add_view(dummy_request())
-        #key=test
+        self.login()
+        self.client.get(urlresolvers.reverse('admin:configstore_configuration_add'))
+        self.client.get(urlresolvers.reverse('admin:configstore_configuration_add'), data={'key':'test'})
+        self.client.get(urlresolvers.reverse('admin:configstore_configuration_changelist'))
     
+    def test_congistore_admin_handles_unknown_keys(self):
+        Configuration(key='unknown-key', site=Site.objects.get_current()).save()
+        self.login()
+        self.client.get(urlresolvers.reverse('admin:configstore_configuration_changelist'))
+
     def test_complex_config(self):
         form_builder = self.complex_instance.get_form_builder()
         lazydictionary_post = get_config('testcomplex')

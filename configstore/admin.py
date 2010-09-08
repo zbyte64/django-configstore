@@ -14,7 +14,6 @@ class ConfigurationAdmin(admin.ModelAdmin):
 
     def get_fieldsets(self, request, obj=None):
         form_builder = self.get_form(request, obj)
-        print [(None, {'fields': form_builder().fields.keys()})]
         return [(None, {'fields': form_builder().fields.keys()})]
 
     def get_form(self, request, obj=None, **kwargs):

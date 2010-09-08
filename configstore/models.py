@@ -22,7 +22,10 @@ class Configuration(models.Model):
     @property
     def name(self):
         from configs import CONFIGS
-        return CONFIGS[self.key].name
+        try:
+            return CONFIGS[self.key].name
+        except KeyError:
+            return self.key
 
     def __unicode__(self):
         return '%s: %s' % (self.key, self.site)
