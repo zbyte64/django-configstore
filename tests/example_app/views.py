@@ -2,6 +2,7 @@ from django.http import HttpResponse
 
 from configstore.configs import get_config
 
+my_config = get_config('example')
+
 def display_my_config(request):
-    config = get_config('example')
-    return HttpResponse(unicode(config), content_type='text/plain')
+    return HttpResponse(unicode(my_config), content_type='text/plain')
