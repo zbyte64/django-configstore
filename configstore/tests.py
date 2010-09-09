@@ -84,10 +84,14 @@ class ConfigStoreTest(TestCase):
         self.assertEqual(test_user.pk, config['user'].pk)
     
     def test_nuke_cache(self):
-        get_config('test').items()
+        my_config = get_config('test')
+        my_config._load()
         nuke_cache()
         for key in CONFIGS.keys():
             self.assertFalse(hasattr(CONFIG_CACHE, key))
+        self.assertFalse(my_config.loaded)
+        my_config._load()
+        self.assertTrue(my_config.loaded)
     
     def test_with_config_templatetag(self):
         self.test_register_and_retrieve_config()
