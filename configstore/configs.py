@@ -9,11 +9,20 @@ CONFIGS = dict()
 
 class ConfigurationInstance(object):
     def __init__(self, key, name, form):
+        """
+        key is used for get_config(key)
+        name is the label to be shown in the admin
+        form is the form used to configure
+        """
         self.key = key
         self.name = name
         self.form = form
 
     def get_config(self):
+        """
+        Returns a dictionary like object representing the stored configuration
+        """
+        #CONSIDER should we plug in caching here?
         try:
             configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
         except Configuration.DoesNotExist:
@@ -22,12 +31,17 @@ class ConfigurationInstance(object):
             return configuration.data
 
     def get_form_builder(self):
+        """
+        Returns a function that is responsible for building a form
+        """
+        #CONSIDER we don't simply return a form because of the admin
         def form_builder(*args, **kwargs):
             kwargs['key'] = self.key
             return self.form(*args, **kwargs)
         return form_builder
 
 def _wrap(func_name):
+    #TODO perserve docs and function name
     def wrapper(self, *args, **kwargs):
         self._load()
         return getattr(super(LazyDictionary, self), func_name)(*args, **kwargs)
@@ -75,6 +89,7 @@ def get_config(key):
     '''
     Returns a lazy object that will be evaluated at the time of getting the first attribute
     The lazy object will be unique to each thread so values may be changed on the fly
+    The object also gets purged upon the begining of each request
     '''
     if not hasattr(CONFIG_CACHE, key):
         setattr(CONFIG_CACHE, key, LazyDictionary(CONFIGS[key].get_config))

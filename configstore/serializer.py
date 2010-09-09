@@ -1,3 +1,6 @@
+"""
+Contains custom json encoders and decoders for handling more complex data types
+"""
 from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ObjectDoesNotExist
@@ -83,5 +86,6 @@ class JSONEncoder(DjangoJSONEncoder):
 
 def make_serializers():
     handlers = [ModelHandler(), DecimalHandler()]
+    #CONSIDER it might be a good idea to allow registering more serializers
     return JSONEncoder(handlers=handlers), JSONDecoder(handlers=handlers)
 

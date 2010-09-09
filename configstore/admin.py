@@ -13,10 +13,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'site')
 
     def get_fieldsets(self, request, obj=None):
+        #consider it might be nice delegate more of this functionality to the ConfigurationInstance
         form_builder = self.get_form(request, obj)
         return [(None, {'fields': form_builder().fields.keys()})]
 
     def get_form(self, request, obj=None, **kwargs):
+        #use the key to get the form
         if obj:
             return CONFIGS[obj.key].get_form_builder()
         return CONFIGS[request.GET['key']].get_form_builder()

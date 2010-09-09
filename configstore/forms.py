@@ -11,6 +11,8 @@ class ConfigurationForm(forms.ModelForm):
         super(ConfigurationForm, self).__init__(*args, **kwargs)
         if self.instance:
             initial = self.instance.data
+            # model based fields don't know what to due with objects,
+            # but they do know what to do with pks
             for key, value in initial.items():
                 if hasattr(value, 'pk'):
                     initial[key] = value.pk
