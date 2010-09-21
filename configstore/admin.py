@@ -33,9 +33,13 @@ class ConfigurationAdmin(admin.ModelAdmin):
         app_label = opts.app_label
         ordered_objects = opts.get_ordered_objects()
         obj = None
+        configs = CONFIGS.items()
+        def sort_by_label(a, b):
+            return cmp(a[1].name, b[1].name)
+        configs.sort(sort_by_label)
         context = {
             'title': _('Add %s') % force_unicode(opts.verbose_name),
-            'configs': CONFIGS,
+            'configs': configs,
             #'adminform': adminForm,
             'is_popup': request.REQUEST.has_key('_popup'),
             'show_delete': False,

@@ -52,10 +52,10 @@ class ConfigStoreTest(TestCase):
         self.assertEqual(0, len(lazydictionary_pre.items()))
 
     def login(self):
-        admin_user = User.objects.create(username='configadmin', is_staff=True, is_superuser=True)
+        admin_user = User(username='configadmin', is_staff=True, is_superuser=True)
         admin_user.set_password('configadmin')
         admin_user.save()
-        self.client.login(username=admin_user.username, password='configadmin')
+        assert self.client.login(username=admin_user.username, password='configadmin')
 
     def test_configstore_admin(self):
         self.login()
