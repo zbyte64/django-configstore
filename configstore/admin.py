@@ -38,7 +38,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             return cmp(a[1].name, b[1].name)
         configs.sort(sort_by_label)
         context = {
-            'title': _('Add %s') % force_unicode(opts.verbose_name),
+            'title': _('Select %s') % force_unicode(opts.verbose_name),
             'configs': configs,
             #'adminform': adminForm,
             'is_popup': request.REQUEST.has_key('_popup'),

@@ -8,9 +8,21 @@
 <div>
 {% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
 
-{% for key, value in configs %}
-    <a href="?key={{key}}">{{value.name}}</a><br/>
-{% endfor %}
+<table>
+    <thead>
+        <tr>
+            <th>{% trans 'Key' %}</th>
+            <th>{% trans 'Name' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for key, value in configs %}
+        <tr class="{% cycle 'row1' 'row2' %}">
+            <th><a href="?key={{key}}">{{key}}</a></th>
+            <td>{{value.name}}</td>
+    {% endfor %}
+    </tbody>
+</table>
 
 </div>
 </form></div>
