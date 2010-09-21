@@ -25,8 +25,9 @@ class TestComplexConfigurationForm(ConfigurationForm):
     user = forms.ModelChoiceField(queryset=User.objects.all())
 
 class ConfigStoreTest(TestCase):
-    urls = 'configstore.test_urls'
-    
+    # CONSIDER: There are no views to test do we need this?
+    # urls = 'configstore.test_urls'
+
     def setUp(self):
         if hasattr(CONFIG_CACHE, 'test'):
             delattr(CONFIG_CACHE, 'test')
@@ -45,11 +46,11 @@ class ConfigStoreTest(TestCase):
         form.save()
         self.assertNotEqual(0, len(get_config('test').items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
-    
+
     def test_empty_config(self):
         lazydictionary_pre = get_config('test')
         self.assertEqual(0, len(lazydictionary_pre.items()))
-    
+
     def login(self):
         admin_user = User.objects.create(username='configadmin', is_staff=True, is_superuser=True)
         admin_user.set_password('configadmin')
@@ -61,7 +62,7 @@ class ConfigStoreTest(TestCase):
         self.client.get(urlresolvers.reverse('admin:configstore_configuration_add'))
         self.client.get(urlresolvers.reverse('admin:configstore_configuration_add'), data={'key':'test'})
         self.client.get(urlresolvers.reverse('admin:configstore_configuration_changelist'))
-    
+
     def test_congistore_admin_handles_unknown_keys(self):
         Configuration(key='unknown-key', site=Site.objects.get_current()).save()
         self.login()
@@ -82,7 +83,7 @@ class ConfigStoreTest(TestCase):
         self.assertEqual(Decimal('5.00'), config['amount'])
         self.assertTrue(isinstance(config['user'], User))
         self.assertEqual(test_user.pk, config['user'].pk)
-    
+
     def test_nuke_cache(self):
         my_config = get_config('test')
         my_config._load()
@@ -92,7 +93,7 @@ class ConfigStoreTest(TestCase):
         self.assertFalse(my_config.loaded)
         my_config._load()
         self.assertTrue(my_config.loaded)
-    
+
     def test_with_config_templatetag(self):
         self.test_register_and_retrieve_config()
         template_string = """
@@ -104,4 +105,3 @@ class ConfigStoreTest(TestCase):
         template = Template(template_string)
         result = template.render(Context({}))
         self.assertTrue('wooot' in result)
-
