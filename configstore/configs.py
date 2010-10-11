@@ -61,6 +61,7 @@ class LazyDictionary(dict): #this is one ugly class
     __format__ = _wrap('__format__')
     __getitem__ = _wrap('__getitem__')
     __iter__ = _wrap('__iter__')
+    __len__ = _wrap('__len__')
     __setitem__ = _wrap('__setitem__')
     __str__ = _wrap('__str__')
     copy = _wrap('copy')
