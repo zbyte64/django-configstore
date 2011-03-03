@@ -4,7 +4,7 @@ from models import Configuration
 
 import threading
 
-CONFIG_CACHE = threading.local()
+CONFIG_CACHE = dict()
 CONFIGS = dict()
 
 class ConfigurationInstance(object):
@@ -44,16 +44,16 @@ def _wrap(func_name):
     #TODO perserve docs and function name
     def wrapper(self, *args, **kwargs):
         self._load()
-        return getattr(super(LazyDictionary, self), func_name)(*args, **kwargs)
+        return getattr(self.data.config, func_name)(*args, **kwargs)
     return wrapper
 
-class LazyDictionary(dict): #this is one ugly class
+class LazyDictionary(object): #this is one ugly class
     def __init__(self, loader):
         '''
         loader is a callable that returns a dictionary
         '''
         self.loader = loader
-        self.loaded = False
+        self.data = threading.local()
 
     # TODO: Since Django likes to lazy we should consider looking if they have
     # already done something like this.
@@ -79,9 +79,12 @@ class LazyDictionary(dict): #this is one ugly class
     values = _wrap('values')
 
     def _load(self):
-        if not self.loaded:
-            self.loaded = True
-            self.update(self.loader())
+        if not hasattr(self.data, 'config'):
+            self.data.config = self.loader()
+    
+    def _reset(self):
+        if hasattr(self.data, 'config'):
+            del self.data.config
 
 def register(configuration_instance):
     CONFIGS[configuration_instance.key] = configuration_instance
@@ -92,7 +95,7 @@ def get_config(key):
     The lazy object will be unique to each thread so values may be changed on the fly
     The object also gets purged upon the begining of each request
     '''
-    if not hasattr(CONFIG_CACHE, key):
-        setattr(CONFIG_CACHE, key, LazyDictionary(CONFIGS[key].get_config))
-    return getattr(CONFIG_CACHE, key)
+    if key not in CONFIG_CACHE:
+        CONFIG_CACHE[key] = LazyDictionary(CONFIGS[key].get_config)
+    return CONFIG_CACHE[key]
 
