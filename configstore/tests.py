@@ -1,15 +1,11 @@
-import unittest
-
 from django.test import TestCase
-from django.test.client import Client
 from django.core import urlresolvers
-from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django import forms
 from django.template import Template, Context
 
-from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE, CONFIGS
+from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE
 from forms import ConfigurationForm
 from models import Configuration
 from listeners import nuke_cache
@@ -44,7 +40,8 @@ class ConfigStoreTest(TestCase):
         form = form_builder({'setting1':'wooot', 'setting2':'2', 'site':'1'}, {})
         self.assertTrue(form.is_valid(), form.errors)
         form.save()
-        self.assertNotEqual(0, len(get_config('test').items()))
+        lazydictionary_post._reset()
+        self.assertNotEqual(0, len(lazydictionary_post.items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
 
     def test_empty_config(self):
@@ -88,11 +85,9 @@ class ConfigStoreTest(TestCase):
         my_config = get_config('test')
         my_config._load()
         nuke_cache()
-        for key in CONFIGS.keys():
-            self.assertFalse(hasattr(CONFIG_CACHE, key))
-        self.assertFalse(my_config.loaded)
+        self.assertFalse(hasattr(my_config.data, 'config'))
         my_config._load()
-        self.assertTrue(my_config.loaded)
+        self.assertTrue(hasattr(my_config.data, 'config'))
 
     def test_with_config_templatetag(self):
         self.test_register_and_retrieve_config()
