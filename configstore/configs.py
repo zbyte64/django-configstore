@@ -78,8 +78,7 @@ class ConfigurationList(ConfigurationInstance):
         return LazyList(self.get_config)
     
     def register_instance(self):
-        LIST_CONFIGS.setdefault(self.key, list())
-        LIST_CONFIGS[self.key].append(self)
+        LIST_CONFIGS[self.key] = self
 
 def _wrap(func_name):
     #TODO perserve docs and function name
@@ -154,9 +153,9 @@ def get_config(key):
     '''
     if key not in CONFIG_CACHE:
         if key in SINGLE_CONFIGS:
-            datum = LazyDictionary(SINGLE_CONFIGS[key].get_config)
+            datum = SINGLE_CONFIGS[key].get_config_object()
         else:
-            datum = LazyDictionary(LIST_CONFIGS[key][0].get_config)
+            datum = LIST_CONFIGS[key].get_config_object()
         CONFIG_CACHE[key] = datum
     return CONFIG_CACHE[key]
 

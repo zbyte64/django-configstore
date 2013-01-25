@@ -21,26 +21,35 @@ class ConfigurationMixin(models.Model):
         
     data = property(get_data, set_data)
     
-    @property
-    def name(self):
-        from configs import CONFIGS
-        try:
-            return CONFIGS[self.key].name
-        except KeyError:
-            return self.key
-
     def __unicode__(self):
-        return u'%s: %s' % (self.key, self.site)
+        return u'%s: %s' % (self.name, self.site)
     
     class Meta:
         abstract = True
 
 class Configuration(ConfigurationMixin):
+    @property
+    def name(self):
+        from configstore.configs import SINGLE_CONFIGS
+        try:
+            return CONFIGS[self.key].name
+        except KeyError:
+            return self.key
+    
     class Meta:
         unique_together = [('key', 'site')]
 
 class ConfigurationList(ConfigurationMixin):
     group = models.CharField(max_length=50) #key represents the instance used
+    
+    @property
+    def name(self):
+        from configstore.configs import LIST_CONFIGS
+        try:
+            return CONFIGS[self.key].name
+        except KeyError:
+            return self.key
+    
     #TODO only in django 1.5
     #class Meta:
     #    index_together = [('group', 'site')]
