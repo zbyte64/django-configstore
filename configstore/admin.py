@@ -6,8 +6,9 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django import template
 
-from models import Configuration
-from configs import CONFIGS
+from configstore.models import Configuration
+from configstore.configs import SINGLE_CONFIGS
+
 
 class ConfigurationAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'site')
@@ -20,8 +21,8 @@ class ConfigurationAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         #use the key to get the form
         if obj:
-            return CONFIGS[obj.key].get_form_builder()
-        return CONFIGS[request.GET['key']].get_form_builder()
+            return SINGLE_CONFIGS[obj.key].get_form_builder()
+        return SINGLE_CONFIGS[request.GET['key']].get_form_builder()
     
     def add_view(self, request, form_url='', extra_context=None):
         if 'key' in request.GET:

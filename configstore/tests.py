@@ -5,10 +5,10 @@ from django.contrib.sites.models import Site
 from django import forms
 from django.template import Template, Context
 
-from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE
-from forms import ConfigurationForm
-from models import Configuration
-from listeners import nuke_cache
+from configstore.configs import ConfigurationInstance, register, get_config, CONFIG_CACHE
+from configstore.forms import ConfigurationForm
+from configstore.models import Configuration
+from configstore.listeners import nuke_cache
 
 from decimal import Decimal
 
@@ -76,7 +76,7 @@ class ConfigStoreTest(TestCase):
         self.assertNotEqual(0, len(lazydictionary_post.items()))
         nuke_cache()
         config = get_config('testcomplex')
-        self.assertTrue(isinstance(config['amount'], Decimal))
+        self.assertTrue(isinstance(config['amount'], Decimal), '%s is not a Decimal' % type(config['amount']))
         self.assertEqual(Decimal('5.00'), config['amount'])
         self.assertTrue(isinstance(config['user'], User))
         self.assertEqual(test_user.pk, config['user'].pk)

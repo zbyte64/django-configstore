@@ -1,5 +1,6 @@
-from configs import CONFIG_CACHE, CONFIGS
+from configstore.configs import CONFIG_CACHE, CONFIGS
 from django.core.signals import request_started
+
 
 def nuke_cache(**kwargs):
     for key in CONFIGS.keys():

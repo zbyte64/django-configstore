@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.sites.models import Site
-from serializer import make_serializers
+
+from configstore.serializer import make_serializers
+
 
 ENCODER, DECODER = make_serializers()
 
-class Configuration(models.Model):
+class ConfigurationMixin(models.Model):
     key = models.CharField(max_length=50)
     site = models.ForeignKey(Site)
     _data = models.TextField(db_column='data')
@@ -28,7 +30,17 @@ class Configuration(models.Model):
             return self.key
 
     def __unicode__(self):
-        return '%s: %s' % (self.key, self.site)
+        return u'%s: %s' % (self.key, self.site)
+    
+    class Meta:
+        abstract = True
 
+class Configuration(ConfigurationMixin):
     class Meta:
         unique_together = [('key', 'site')]
+
+class ConfigurationList(ConfigurationMixin):
+    group = models.CharField(max_length=50) #key represents the instance used
+    #TODO only in django 1.5
+    #class Meta:
+    #    index_together = [('group', 'site')]

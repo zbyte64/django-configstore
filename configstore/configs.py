@@ -1,11 +1,12 @@
 from django.contrib.sites.models import Site
 
-from models import Configuration
+from configstore.models import Configuration, ConfigurationList
 
 import threading
 
 CONFIG_CACHE = dict()
-CONFIGS = dict()
+SINGLE_CONFIGS = dict()
+LIST_CONFIGS = dict()
 
 class ConfigurationInstance(object):
     def __init__(self, key, name, form):
@@ -19,26 +20,66 @@ class ConfigurationInstance(object):
         self.form = form
 
     def get_config(self):
-        """
-        Returns a dictionary like object representing the stored configuration
-        """
-        #CONSIDER should we plug in caching here?
-        try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
-        except Configuration.DoesNotExist:
-            return {}
-        else:
-            return configuration.data
-
+        raise NotImplementedError
+    
+    def register_instance(self):
+        raise NotImplementedError
+    
+    def get_form_kwargs(self, **kwargs):
+        kwargs.setdefault('key', self.key)
+        return kwargs
+    
     def get_form_builder(self):
         """
         Returns a function that is responsible for building a form
         """
         #CONSIDER we don't simply return a form because of the admin
         def form_builder(*args, **kwargs):
-            kwargs['key'] = self.key
+            kwargs = self.get_form_kwargs(**kwargs)
             return self.form(*args, **kwargs)
         return form_builder
+
+class ConfigurationSingleton(ConfigurationInstance):
+    def get_config(self):
+        """
+        Returns a dictionary like object representing the stored configuration
+        """
+        try:
+            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except Configuration.DoesNotExist:
+            return {}
+        else:
+            return configuration.data
+    
+    def get_config_object(self):
+        return LazyDictionary(self.get_config)
+    
+    def register_instance(self):
+        SINGLE_CONFIGS[self.key] = self
+
+class ConfigurationList(ConfigurationInstance):
+    def __init__(self, group, **kwargs):
+        self.group = group
+        super(ConfigurationList, self).__init__(**kwargs)
+    
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super(ConfigurationList, self).get_form_kwargs(**kwargs)
+        kwargs.setdefault('group', self.group)
+        return kwargs
+    
+    def get_config(self):
+        """
+        Returns a list of dictionary like object representing the stored configuration
+        """
+        configurations = ConfigurationList.objects.filter(group=self.group, site=Site.objects.get_current())
+        return [configuration.data for configuration in configurations]
+    
+    def get_config_object(self):
+        return LazyList(self.get_config)
+    
+    def register_instance(self):
+        LIST_CONFIGS.setdefault(self.key, list())
+        LIST_CONFIGS[self.key].append(self)
 
 def _wrap(func_name):
     #TODO perserve docs and function name
@@ -47,14 +88,23 @@ def _wrap(func_name):
         return getattr(self.data.config, func_name)(*args, **kwargs)
     return wrapper
 
-class LazyDictionary(object): #this is one ugly class
+class LazyMixin(object):
     def __init__(self, loader):
         '''
         loader is a callable that returns a dictionary
         '''
         self.loader = loader
         self.data = threading.local()
+    
+    def _load(self):
+        if not hasattr(self.data, 'config'):
+            self.data.config = self.loader()
+    
+    def _reset(self):
+        if hasattr(self.data, 'config'):
+            del self.data.config
 
+class LazyDictionary(LazyMixin): #this is one ugly class
     # TODO: Since Django likes to lazy we should consider looking if they have
     # already done something like this.
     __contains__ = _wrap('__contains__')
@@ -78,16 +128,23 @@ class LazyDictionary(object): #this is one ugly class
     update = _wrap('update')
     values = _wrap('values')
 
-    def _load(self):
-        if not hasattr(self.data, 'config'):
-            self.data.config = self.loader()
-    
-    def _reset(self):
-        if hasattr(self.data, 'config'):
-            del self.data.config
+class LazyList(LazyMixin):
+    __contains__ = _wrap('__contains__')
+    __getitem__ = _wrap('__getitem__')
+    __iter__ = _wrap('__iter__')
+    __len__ = _wrap('__len__')
+    __setitem__ = _wrap('__setitem__')
+    __str__ = _wrap('__str__')
+    count = _wrap('count')
+    index = _wrap('index')
+    sort = _wrap('sort')
+    reverse = _wrap('reverse')
 
-def register(configuration_instance):
-    CONFIGS[configuration_instance.key] = configuration_instance
+def register(klass, key, **params):
+    params['key'] = key
+    instance = klass(**params)
+    instance.register_instance()
+    return instance
 
 def get_config(key):
     '''
@@ -96,6 +153,10 @@ def get_config(key):
     The object also gets purged upon the begining of each request
     '''
     if key not in CONFIG_CACHE:
-        CONFIG_CACHE[key] = LazyDictionary(CONFIGS[key].get_config)
+        if key in SINGLE_CONFIGS:
+            datum = LazyDictionary(SINGLE_CONFIGS[key].get_config)
+        else:
+            datum = LazyDictionary(LIST_CONFIGS[key][0].get_config)
+        CONFIG_CACHE[key] = datum
     return CONFIG_CACHE[key]
 
