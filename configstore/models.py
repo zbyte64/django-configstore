@@ -32,7 +32,7 @@ class Configuration(ConfigurationMixin):
     def name(self):
         from configstore.configs import SINGLE_CONFIGS
         try:
-            return CONFIGS[self.key].name
+            return SINGLE_CONFIGS[self.key].name
         except KeyError:
             return self.key
     
@@ -46,7 +46,7 @@ class ConfigurationList(ConfigurationMixin):
     def name(self):
         from configstore.configs import LIST_CONFIGS
         try:
-            return CONFIGS[self.key].name
+            return LIST_CONFIGS[self.key].name
         except KeyError:
             return self.key
     

@@ -15,30 +15,32 @@ class ConfigurationResourceMixin(object):
         raise NotImplementedError
     
     def get_configuration_instance(self):
-        if 'instance' in self.state:
-            key = self.state['instance'].key
+        if 'item' in self.state:
+            key = self.state['item'].instance.key
         else:
             key = self.state.params['key']
         return self.get_configuration_options()[key]
     
     def get_form_class(self):
+        if self.requires_select_configuration():
+            return self.get_select_configuration_form_class()
         return self.get_configuration_instance().form
     
     def get_form_kwargs(self, **kwargs):
         kwargs = super(ConfigurationResourceMixin, self).get_form_kwargs(**kwargs)
-        return self.get_configuration_instance().get_form_kwargs(**kwargs)
-    
-    #TODO special add endpoint and add links
+        if not self.requires_select_configuration():
+            return self.get_configuration_instance().get_form_kwargs(**kwargs)
+        return kwargs
     
     def requires_select_configuration(self):
         if 'key' in self.state.params:
             return False
-        if 'instance' in self.state and self.state['instance'].pk:
+        if 'item' in self.state and self.state['item'].instance.pk:
             return False
         return True
     
     def get_select_configuration_form_class(self):
-        configuration_choices = list()
+        configuration_choices = [(key, instance.name) for key, instance in self.get_configuration_options().iteritems()]
         
         class SelectConfigurationForm(forms.Form):
             key = forms.ChoiceField(choices=configuration_choices)
@@ -46,6 +48,9 @@ class ConfigurationResourceMixin(object):
             def __init__(self, **kwargs):
                 self.instance = kwargs.pop('instance', None)
                 super(SelectConfigurationForm, self).__init__(**kwargs)
+            
+            def save(self, **kwargs):
+                return None
         
         return SelectConfigurationForm
 

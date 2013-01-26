@@ -1,4 +1,4 @@
-from hyperadmin.resources.models.endpoints import ListEndpoint, CreateEndpoint as BaseCreateEndpoint, DetailEndpoint, DeleteEndpoint, CreateLinkPrototype as BaseCreateLinkPrototype
+from hyperadmin.resources.crud.endpoints import CreateEndpoint as BaseCreateEndpoint, CreateLinkPrototype as BaseCreateLinkPrototype
 
 
 class CreateLinkPrototype(BaseCreateLinkPrototype):

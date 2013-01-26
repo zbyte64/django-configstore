@@ -38,6 +38,24 @@ class ConfigurationInstance(object):
             kwargs = self.get_form_kwargs(**kwargs)
             return self.form(*args, **kwargs)
         return form_builder
+    
+    #for backwards compat
+    def get_config(self):
+        """
+        Returns a dictionary like object representing the stored configuration
+        """
+        try:
+            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except Configuration.DoesNotExist:
+            return {}
+        else:
+            return configuration.data
+    
+    def get_config_object(self):
+        return LazyDictionary(self.get_config)
+    
+    def register_instance(self):
+        SINGLE_CONFIGS[self.key] = self
 
 class ConfigurationSingleton(ConfigurationInstance):
     def get_config(self):
@@ -139,7 +157,10 @@ class LazyList(LazyMixin):
     sort = _wrap('sort')
     reverse = _wrap('reverse')
 
-def register(klass, key, **params):
+def register(instance):
+    instance.register_instance()
+
+def new_register(klass, key, **params):
     params['key'] = key
     instance = klass(**params)
     instance.register_instance()
