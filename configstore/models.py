@@ -40,6 +40,7 @@ class Configuration(ConfigurationMixin):
         unique_together = [('key', 'site')]
 
 class ConfigurationList(ConfigurationMixin):
+    label = models.CharField(max_length=50)
     group = models.CharField(max_length=50) #key represents the instance used
     
     @property

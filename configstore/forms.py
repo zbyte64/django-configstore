@@ -60,5 +60,5 @@ class ConfigurationListForm(forms.ModelForm):
 
     class Meta:
         model = ConfigurationList
-        fields = ['site']
+        fields = ['label', 'site']
 

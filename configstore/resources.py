@@ -64,6 +64,8 @@ class ConfigurationResource(ConfigurationResourceMixin, ModelResource):
 hyperadmin.site.register(Configuration, ConfigurationResource)
 
 class ConfigurationListResource(ConfigurationResourceMixin, ModelResource):
+    list_display = ['label', 'name', 'key', 'site']
+    
     def get_configuration_options(self):
         return LIST_CONFIGS
 
