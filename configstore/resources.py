@@ -9,6 +9,9 @@ from configstore.endpoints import CreateEndpoint
 
 
 class ConfigurationResourceMixin(object):
+    list_display = ['name', 'key', 'site']
+    list_filter = ['site']
+    
     create_endpoint_class = CreateEndpoint
     
     def get_configuration_options(self):
