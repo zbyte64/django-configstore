@@ -1,12 +1,13 @@
 from django.contrib.sites.models import Site
 
-from configstore.models import Configuration, ConfigurationList
+from configstore import models #import Configuration, ConfigurationList
 
 import threading
 
 CONFIG_CACHE = dict()
 SINGLE_CONFIGS = dict()
 LIST_CONFIGS = dict()
+CONFIGS = dict() #global lookup
 
 class ConfigurationInstance(object):
     def __init__(self, key, name, form):
@@ -45,16 +46,19 @@ class ConfigurationInstance(object):
         Returns a dictionary like object representing the stored configuration
         """
         try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
-        except Configuration.DoesNotExist:
+            configuration = models.Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except models.Configuration.DoesNotExist:
             return {}
         else:
             return configuration.data
     
+    #for backwards compat
     def get_config_object(self):
         return LazyDictionary(self.get_config)
     
+    #for backwards compat
     def register_instance(self):
+        CONFIGS[self.key] = self
         SINGLE_CONFIGS[self.key] = self
 
 class ConfigurationSingleton(ConfigurationInstance):
@@ -63,8 +67,8 @@ class ConfigurationSingleton(ConfigurationInstance):
         Returns a dictionary like object representing the stored configuration
         """
         try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
-        except Configuration.DoesNotExist:
+            configuration = models.Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except models.Configuration.DoesNotExist:
             return {}
         else:
             return configuration.data
@@ -73,6 +77,7 @@ class ConfigurationSingleton(ConfigurationInstance):
         return LazyDictionary(self.get_config)
     
     def register_instance(self):
+        CONFIGS[self.key] = self
         SINGLE_CONFIGS[self.key] = self
 
 class ConfigurationList(ConfigurationInstance):
@@ -89,13 +94,14 @@ class ConfigurationList(ConfigurationInstance):
         """
         Returns a list of dictionary like object representing the stored configuration
         """
-        configurations = ConfigurationList.objects.filter(group=self.group, site=Site.objects.get_current())
+        configurations = models.ConfigurationList.objects.filter(group=self.group, site=Site.objects.get_current())
         return [configuration.data for configuration in configurations]
     
     def get_config_object(self):
         return LazyList(self.get_config)
     
     def register_instance(self):
+        CONFIGS[self.group] = self
         LIST_CONFIGS[self.key] = self
 
 def _wrap(func_name):
@@ -173,10 +179,21 @@ def get_config(key):
     The object also gets purged upon the begining of each request
     '''
     if key not in CONFIG_CACHE:
-        if key in SINGLE_CONFIGS:
-            datum = SINGLE_CONFIGS[key].get_config_object()
+        if key in CONFIGS:
+            datum = CONFIGS[key].get_config_object()
         else:
-            datum = LIST_CONFIGS[key].get_config_object()
+            datum = DEFAULTS[key].get_config_object()
         CONFIG_CACHE[key] = datum
     return CONFIG_CACHE[key]
 
+def setdefault(klass, key, **params):
+    '''
+    set the default config provider which can be registered over
+    '''
+    if key not in CONFIGS:
+        params.setdefault('name', None)
+        params.setdefault('form', None)
+        params['key'] = key
+        instance = klass(**params)
+        CONFIGS[key] = instance
+    return instance
