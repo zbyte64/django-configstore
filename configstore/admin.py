@@ -87,7 +87,7 @@ class ConfigurationListAdmin(admin.ModelAdmin):
     
     def add_view(self, request, form_url='', extra_context=None):
         if 'key' in request.GET:
-            return super(ConfigurationAdmin, self).add_view(request, form_url, extra_context)
+            return super(ConfigurationListAdmin, self).add_view(request, form_url, extra_context)
         #render a listing of links ?key={{configkey}}
         #consider can we also select the site?
         model = self.model

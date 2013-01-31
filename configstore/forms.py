@@ -51,6 +51,7 @@ class ConfigurationListForm(forms.ModelForm):
         instance = super(ConfigurationListForm, self).save(False)
         data = dict(self.cleaned_data)
         del data['site']
+        data['_key'] = self.key
         instance.data = data
         instance.key = self.key
         instance.group = self.group
