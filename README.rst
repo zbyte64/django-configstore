@@ -4,6 +4,7 @@ Config Store
 
 - Stores configurations and are retrievable as a dictionary
 - Configurations are lazily loaded and are cached per request
+- Configurations can have a Setup action to run one-time requests dependent on the configuration data
 - Configuration is defined as a django form
 
 Installation
@@ -23,11 +24,18 @@ Define your configuration form somewhere::
     
     from configstore.configs import ConfigurationInstance, register
     from configstore.forms import ConfigurationForm
+
+    import logging
     
     class ExampleConfigurationForm(ConfigurationForm):
         amount = forms.DecimalField()
         message = forms.CharField()
         user = forms.ModelChoiceField(queryset=User.objects.all())
+
+        @staticmethod
+        def config_task(configuration):
+            logging.info("You just ran the configuration action for %s!" % unicode(configuration.name) )
+            return "Yay, you've accomplished nothing!"
 
 Register the form::
 

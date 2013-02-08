@@ -32,4 +32,13 @@ class ConfigurationForm(forms.ModelForm):
         model = Configuration
         fields = ['site']
 
+    @staticmethod
+    def config_task(configuration):
+        """
+        Params:
+            configuration - Instance of django-configstore.models.Configuration
 
+        Return:
+            Message to be echo'ed back to the user through "message_user".
+        """
+        return "No task defined for %s." % configuration.name
