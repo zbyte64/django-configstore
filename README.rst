@@ -34,13 +34,6 @@ Define your configuration form somewhere::
 
         @staticmethod
         def config_task(configuration):
-            """
-            Params:
-                configuration - Instance of django-configstore.models.Configuration
-
-            Return:
-                Message to be echo'ed back to the user through "message_user".
-            """
             logging.info("You just ran the configuration action for %s!" % unicode(configuration.name) )
             return "Yay, you've accomplished nothing!"
 
