@@ -61,7 +61,7 @@ class ConfigurationResource(ConfigurationResourceMixin, ModelResource):
     def get_configuration_options(self):
         return SINGLE_CONFIGS
 
-hyperadmin.site.register(Configuration, ConfigurationResource)
+hyperadmin.site.register(Configuration, ConfigurationResource, app_name='configstore')
 
 class ConfigurationListResource(ConfigurationResourceMixin, ModelResource):
     list_display = ['label', 'name', 'key', 'site']
@@ -69,4 +69,4 @@ class ConfigurationListResource(ConfigurationResourceMixin, ModelResource):
     def get_configuration_options(self):
         return LIST_CONFIGS
 
-hyperadmin.site.register(ConfigurationList, ConfigurationListResource)
+hyperadmin.site.register(ConfigurationList, ConfigurationListResource, app_name='configstore')
