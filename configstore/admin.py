@@ -12,6 +12,14 @@ from configs import CONFIGS
 class ConfigurationAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'site')
 
+    actions = ['run_setup']
+
+    def run_setup(self, request, queryset):
+        for item in queryset:
+            setup_task = CONFIGS.get(item.key).form.config_task
+            self.message_user(request, setup_task(item))
+    run_setup.short_description = "Run the setup task for the configuration"
+
     def get_fieldsets(self, request, obj=None):
         #consider it might be nice delegate more of this functionality to the ConfigurationInstance
         form_builder = self.get_form(request, obj)

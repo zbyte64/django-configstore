@@ -32,4 +32,6 @@ class ConfigurationForm(forms.ModelForm):
         model = Configuration
         fields = ['site']
 
-
+    @staticmethod
+    def config_task(configuration):
+        return "No task defined for %s." % configuration.name
