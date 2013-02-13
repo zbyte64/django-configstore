@@ -32,9 +32,8 @@ Define your configuration form somewhere::
         message = forms.CharField()
         user = forms.ModelChoiceField(queryset=User.objects.all())
 
-        @staticmethod
-        def config_task(configuration):
-            logging.info("You just ran the configuration action for %s!" % unicode(configuration.name) )
+        def config_task(self):
+            logging.info("You just ran the configuration action for %s!" % unicode(self.key) )
             return "Yay, you've accomplished nothing!"
 
 Register the form::
