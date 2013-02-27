@@ -83,6 +83,18 @@ class JSONEncoder(DjangoJSONEncoder):
             if isinstance(obj, handler.instancetype):
                 return handler.encode(obj)
         return super(JSONEncoder, self).default(obj)
+    
+    def encode(self, o):
+        if isinstance(o, dict):
+            new_struct = dict()
+            for key, value in o.iteritems():
+                for handler in self.handlers:
+                    if isinstance(value, handler.instancetype):
+                        value = handler.encode(value)
+                        break
+                new_struct[key] = value
+            return super(JSONEncoder, self).encode(new_struct)
+        return super(JSONEncoder, self).encode(o)
 
 def make_serializers():
     handlers = [ModelHandler(), DecimalHandler()]
