@@ -6,6 +6,7 @@ Config Store
 - Configurations are lazily loaded and are cached per request
 - Configurations can have a Setup action to run one-time requests dependent on the configuration data
 - Configuration is defined as a django form
+- Configurations can be encrypted by subclassing EncryptedConfigurationForm
 
 Installation
 ============
@@ -25,15 +26,12 @@ Define your configuration form somewhere::
     from configstore.configs import ConfigurationInstance, register
     from configstore.forms import ConfigurationForm
 
-    import logging
-    
     class ExampleConfigurationForm(ConfigurationForm):
         amount = forms.DecimalField()
         message = forms.CharField()
         user = forms.ModelChoiceField(queryset=User.objects.all())
 
         def config_task(self):
-            logging.info("You just ran the configuration action for %s!" % unicode(self.key) )
             return "Yay, you've accomplished nothing!"
 
 Register the form::
@@ -47,3 +45,19 @@ Somewhere else in your code retrieve the config and use it::
     config = get_config('example')
     print config['amount']
 
+
+You can also encrypt the data in your configstore data section. Configstore uses AES keyed on your django secret::
+
+    from django import forms
+    from django.contrib.auth.models import User
+
+    from configstore.configs import ConfigurationInstance, register
+    from configstore.forms import EncryptedConfigurationForm
+
+    class ExampleConfigurationForm(EncryptedConfigurationForm):
+        amount = forms.DecimalField()
+        message = forms.CharField()
+        user = forms.ModelChoiceField(queryset=User.objects.all())
+
+        def config_task(self):
+            return "Yay, you've accomplished nothing!"
