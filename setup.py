@@ -16,6 +16,13 @@ setup(name='django-configstore',
       url='http://github.com/cuker/django-configstore',
       packages=find_packages(exclude=['ez_setup', 'test', 'tests']),
       test_suite='tests.runtests.runtests',
+      tests_require=(
+        'pep8',
+        'coverage',
+        'django',
+        'nose',
+        'django-nose',
+      ),
       include_package_data=True,
       license = 'BSD',
       classifiers=[
