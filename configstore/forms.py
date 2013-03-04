@@ -1,4 +1,5 @@
 from django import forms
+from models import Configuration
 from django.utils import simplejson
 from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
@@ -10,8 +11,9 @@ class ConfigurationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.key = kwargs.pop('key')
         self.configuration = kwargs.pop('configuration')
-        self.instance = args[0]
+        self.instance = kwargs.pop('instance', None)
         super(ConfigurationForm, self).__init__(*args, **kwargs)
+        self.instance = self.configuration.get_data()
         if self.instance:
             initial = self.instance
             # model based fields don't know what to due with objects,
@@ -21,10 +23,20 @@ class ConfigurationForm(forms.Form):
                     initial[key] = value.pk
             self.initial.update(initial)
 
-    def save(self):
+    def save(self, commit=False):
         data = dict(self.cleaned_data)
-        del data['site']
-        return self.configuration.set_config(data)
+        return self.configuration.set_data(data)
+        #
+        # if not commit:
+        #     self.saved_forms = []
+        #     def save_m2m():
+        #         for form in self.saved_forms:
+        #             form.save_m2m()
+        #     self.save_m2m = save_m2m
+        # return self.save_existing_objects(commit) + self.save_new_objects(commit)
+
+    def save_m2m(self):
+        return True
 
     def config_task(self):
         return "No configuration action defined for %s" % self.key

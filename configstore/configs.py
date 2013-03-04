@@ -23,7 +23,7 @@ class ConfigurationInstance(object):
         self.name = name
         self.form = form
 
-    def get_config(self):
+    def get_data(self):
         """
         Returns a dictionary like object representing the stored configuration
         """
@@ -35,15 +35,17 @@ class ConfigurationInstance(object):
         else:
             return DECODER.decode(configuration.data)
 
-    def set_config(self, data):
+    def set_data(self, data, commit=False):
         try:
             configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
         except Configuration.DoesNotExist:
             configuration = Configuration()
-            configuration.key = data.key
-            configuration.site = data.site
+            configuration.key = self.key
+            configuration.site = Site.objects.get_current()
         configuration.data = ENCODER.encode(data)
-        configuration.save()
+        if commit:
+            configuration.save()
+        return configuration
 
     def get_form_builder(self):
         """
@@ -58,7 +60,7 @@ class ConfigurationInstance(object):
 
 
 class AESEncryptedConfiguration(ConfigurationInstance):
-    def get_config(self):
+    def get_data(self):
         try:
             configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
             data = self.decrypt_data(configuration.data, configuration.site.id)
@@ -67,15 +69,19 @@ class AESEncryptedConfiguration(ConfigurationInstance):
         else:
             return DECODER.decode(data)
 
-    def set_config(self, data):
+    def set_data(self, data, commit=True):
         try:
             configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except Configuration.DoesNotExist:
+            configuration = Configuration()
+            configuration.key = self.key
+            configuration.site = Site.objects.get_current()
+        else:
             data = ENCODER.encode(data)
             configuration._data = self.encrypt_data(self.pad_string(data, AES.block_size), configuration.site.id)
-        except Configuration.DoesNotExist:
-            return {}
-        else:
-            return configuration.data
+        if commit:
+            configuration.save()
+        return configuration
 
     def encrypt_data(self, value, iv):
         iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()
@@ -145,12 +151,12 @@ def register(configuration_instance):
     CONFIGS[configuration_instance.key] = configuration_instance
 
 def get_config(key):
-    '''
+    """
     Returns a lazy object that will be evaluated at the time of getting the first attribute
     The lazy object will be unique to each thread so values may be changed on the fly
-    The object also gets purged upon the begining of each request
-    '''
+    The object also gets purged upon the beginning of each request
+    """
     if key not in CONFIG_CACHE:
-        CONFIG_CACHE[key] = LazyDictionary(CONFIGS[key].get_config)
+        CONFIG_CACHE[key] = LazyDictionary(CONFIGS[key].get_data)
     return CONFIG_CACHE[key]
 
