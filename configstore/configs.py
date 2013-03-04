@@ -4,7 +4,11 @@ from Crypto.Hash import MD5
 from django.conf import settings
 from django.contrib.sites.models import Site
 
-from models import Configuration, DECODER, ENCODER
+from models import Configuration
+
+from serializer import make_serializers
+ENCODER, DECODER = make_serializers()
+
 
 import threading
 

@@ -1,10 +1,10 @@
 from django import forms
 from models import Configuration
-from django.utils import simplejson
-from django.contrib.sites.models import Site
-from django.core.serializers.json import DjangoJSONEncoder
-
-from models import Configuration
+# from django.utils import simplejson
+# from django.contrib.sites.models import Site
+# from django.core.serializers.json import DjangoJSONEncoder
+#
+# from models import Configuration
 
 
 class ConfigurationForm(forms.Form):
@@ -26,14 +26,6 @@ class ConfigurationForm(forms.Form):
     def save(self, commit=False):
         data = dict(self.cleaned_data)
         return self.configuration.set_data(data)
-        #
-        # if not commit:
-        #     self.saved_forms = []
-        #     def save_m2m():
-        #         for form in self.saved_forms:
-        #             form.save_m2m()
-        #     self.save_m2m = save_m2m
-        # return self.save_existing_objects(commit) + self.save_new_objects(commit)
 
     def save_m2m(self):
         return True

@@ -1,13 +1,5 @@
 from django.db import models
 from django.contrib.sites.models import Site
-from serializer import make_serializers
-from Crypto.Cipher import AES
-from Crypto.Hash import MD5
-import base64
-from django.conf import settings
-
-ENCODER, DECODER = make_serializers()
-
 
 class Configuration(models.Model):
     key = models.CharField(max_length=50)
@@ -22,18 +14,6 @@ class Configuration(models.Model):
         self._data = data
 
     data = property(get_data, set_data)
-
-    def encrypt_data(self, value):
-        iv = MD5.new("%s!%s" % (self.site.id, settings.SECRET_KEY)).digest()
-        enc = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)  # Guess why :32?
-        value = enc.encrypt(self.pad_string(value, AES.block_size))
-        return base64.b64encode(value)
-
-    def decrypt_data(self, value):
-        value = base64.b64decode(value)
-        iv = MD5.new("%s!%s" % (self.site.id, settings.SECRET_KEY)).digest()
-        dec = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)
-        return dec.decrypt(value).strip()
 
     def set_key_value(self, key, value):
         r = self.get_data()

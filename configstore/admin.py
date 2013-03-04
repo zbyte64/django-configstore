@@ -10,6 +10,7 @@ from django import template
 from models import Configuration
 from configs import CONFIGS
 
+
 class ConfigurationAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'site')
 
