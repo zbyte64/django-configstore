@@ -15,11 +15,6 @@ class Configuration(models.Model):
 
     data = property(get_data, set_data)
 
-    def set_key_value(self, key, value):
-        r = self.get_data()
-        r[key] = value
-        return self.set_data(r)
-
     @property
     def name(self):
         from configs import CONFIGS

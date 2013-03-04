@@ -23,9 +23,9 @@ class ConfigurationForm(forms.Form):
                     initial[key] = value.pk
             self.initial.update(initial)
 
-    def save(self, commit=False):
+    def save(self, commit=True):
         data = dict(self.cleaned_data)
-        return self.configuration.set_data(data)
+        return self.configuration.set_data(data, commit)
 
     def save_m2m(self):
         return True
@@ -37,7 +37,7 @@ class ConfigurationForm(forms.Form):
         model = Configuration
         fields = ['site']
 
-
+#
 # class EncryptedConfigurationForm(ConfigurationForm):
 #
 #     def save(self, commit=True):

@@ -39,7 +39,8 @@ class ConfigurationInstance(object):
         else:
             return DECODER.decode(configuration.data)
 
-    def set_data(self, data, commit=False):
+    def set_data(self, data, commit=True):
+        #TODO use get_or_create instead of create, look at return types and stuff
         try:
             configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
         except Configuration.DoesNotExist:
