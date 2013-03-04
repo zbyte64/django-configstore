@@ -16,20 +16,10 @@ class Configuration(models.Model):
     is_crypto = models.BooleanField(default=False)
 
     def get_data(self):
-        if self._data:
-            if self.is_crypto:
-                data = self.decrypt_data(self._data)
-                return DECODER.decode(data)
-            else:
-                return DECODER.decode(self._data)
-        return {}
+        return self._data
 
     def set_data(self, data):
-        if self.is_crypto:
-            data = ENCODER.encode(data)
-            self._data = self.encrypt_data(data)
-        else:
-            self._data = ENCODER.encode(data)
+        self._data = data
 
     data = property(get_data, set_data)
 
@@ -49,11 +39,6 @@ class Configuration(models.Model):
         r = self.get_data()
         r[key] = value
         return self.set_data(r)
-
-    def pad_string(self, string, block_size):
-        str_size = len(string)
-        missing = block_size - (str_size % block_size)
-        return str(string) + missing * u" "
 
     @property
     def name(self):

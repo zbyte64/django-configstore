@@ -1,11 +1,16 @@
+import base64
+from Crypto.Cipher import AES
+from Crypto.Hash import MD5
+from django.conf import settings
 from django.contrib.sites.models import Site
 
-from models import Configuration
+from models import Configuration, DECODER, ENCODER
 
 import threading
 
 CONFIG_CACHE = dict()
 CONFIGS = dict()
+
 
 class ConfigurationInstance(object):
     def __init__(self, key, name, form):
@@ -28,7 +33,17 @@ class ConfigurationInstance(object):
         except Configuration.DoesNotExist:
             return {}
         else:
-            return configuration.data
+            return DECODER.decode(configuration.data)
+
+    def set_config(self, data):
+        try:
+            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+        except Configuration.DoesNotExist:
+            configuration = Configuration()
+            configuration.key = data.key
+            configuration.site = data.site
+        configuration.data = ENCODER.encode(data)
+        configuration.save()
 
     def get_form_builder(self):
         """
@@ -37,8 +52,48 @@ class ConfigurationInstance(object):
         #CONSIDER we don't simply return a form because of the admin
         def form_builder(*args, **kwargs):
             kwargs['key'] = self.key
+            kwargs['configuration'] = self
             return self.form(*args, **kwargs)
         return form_builder
+
+
+class AESEncryptedConfiguration(ConfigurationInstance):
+    def get_config(self):
+        try:
+            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+            data = self.decrypt_data(configuration.data, configuration.site.id)
+        except Configuration.DoesNotExist:
+            return {}
+        else:
+            return DECODER.decode(data)
+
+    def set_config(self, data):
+        try:
+            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+            data = ENCODER.encode(data)
+            configuration._data = self.encrypt_data(self.pad_string(data, AES.block_size), configuration.site.id)
+        except Configuration.DoesNotExist:
+            return {}
+        else:
+            return configuration.data
+
+    def encrypt_data(self, value, iv):
+        iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()
+        enc = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)  # Guess why :32?
+        value = enc.encrypt(self.pad_string(value, AES.block_size))
+        return base64.b64encode(value)
+
+    def decrypt_data(self, value, iv):
+        value = base64.b64decode(value)
+        iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()
+        dec = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)
+        return dec.decrypt(value).strip()
+
+    def pad_string(self, string, block_size):
+        str_size = len(string)
+        missing = block_size - (str_size % block_size)
+        return str(string) + missing * u" "
+
 
 def _wrap(func_name):
     #TODO perserve docs and function name
