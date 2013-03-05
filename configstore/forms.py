@@ -9,15 +9,15 @@ class ConfigurationForm(forms.Form):
         self.configuration = kwargs.pop('configuration')
         self.instance = kwargs.pop('instance', None)
         super(ConfigurationForm, self).__init__(*args, **kwargs)
-        self.instance = self.configuration.get_data()
         if self.instance:
-            initial = self.instance
+            self.initial['site'] = self.instance.site.pk
+        self._original_data = self.configuration.get_data()
+        if self._original_data:
             # model based fields don't know what to due with objects,
             # but they do know what to do with pks
-            for key, value in initial.items():
+            for key, value in self._original_data.items():
                 if hasattr(value, 'pk'):
-                    initial[key] = value.pk
-            self.initial.update(initial)
+                    self.initial[key] = value.pk
 
     def save(self, commit=True):
         data = dict(self.cleaned_data)
