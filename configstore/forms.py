@@ -1,10 +1,4 @@
 from django import forms
-from models import Configuration
-# from django.utils import simplejson
-# from django.contrib.sites.models import Site
-# from django.core.serializers.json import DjangoJSONEncoder
-#
-# from models import Configuration
 
 
 class ConfigurationForm(forms.Form):
@@ -33,18 +27,3 @@ class ConfigurationForm(forms.Form):
     def config_task(self):
         return "No configuration action defined for %s" % self.key
 
-    class Meta:
-        model = Configuration
-        fields = ['site']
-
-#
-# class EncryptedConfigurationForm(ConfigurationForm):
-#
-#     def save(self, commit=True):
-#         instance = super(EncryptedConfigurationForm, self).save(commit=False)
-#         data = instance.get_data()
-#         instance.is_crypto = True
-#         instance.set_data(data)
-#         if commit:
-#             instance.save()
-#         return instance

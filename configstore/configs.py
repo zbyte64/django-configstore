@@ -1,16 +1,16 @@
 import base64
+import threading
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
+
 from django.conf import settings
 from django.contrib.sites.models import Site
 
-from models import Configuration
+from configstore.models import Configuration
+from configstore.serializer import make_serializers
 
-from serializer import make_serializers
+
 ENCODER, DECODER = make_serializers()
-
-
-import threading
 
 CONFIG_CACHE = dict()
 CONFIGS = dict()
@@ -72,6 +72,8 @@ class AESEncryptedConfiguration(ConfigurationInstance):
         except Configuration.DoesNotExist:
             return {}
         else:
+            if not data:
+                return {}
             return DECODER.decode(data)
 
     def set_data(self, data, commit=True):
@@ -81,9 +83,9 @@ class AESEncryptedConfiguration(ConfigurationInstance):
             configuration = Configuration()
             configuration.key = self.key
             configuration.site = Site.objects.get_current()
-        else:
-            data = ENCODER.encode(data)
-            configuration._data = self.encrypt_data(self.pad_string(data, AES.block_size), configuration.site.id)
+        data = ENCODER.encode(data)
+        
+        configuration._data = self.encrypt_data(self.pad_string(data, AES.block_size), configuration.site.id)
         if commit:
             configuration.save()
         return configuration
