@@ -17,7 +17,8 @@ class ConfigurationForm(forms.Form):
             # but they do know what to do with pks
             for key, value in self._original_data.items():
                 if hasattr(value, 'pk'):
-                    self.initial[key] = value.pk
+                    value = value.pk
+                self.initial[key] = value
 
     def save(self, commit=True):
         data = dict(self.cleaned_data)
