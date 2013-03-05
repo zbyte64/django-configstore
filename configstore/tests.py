@@ -101,7 +101,7 @@ class ConfigStoreTest(TestCase):
         self.assertNotEqual(0, len(get_config('testcomplex').items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
         conf = Configuration.objects.get(key='testcomplex')
-        self.assertTrue('5.00' in conf._data)
+        self.assertTrue('5.00' in conf.data)
 
     def test_with_config_templatetag(self):
         self.test_register_and_retrieve_config()
@@ -154,5 +154,5 @@ class AESEncryptedConfigStoreTest(TestCase):
         self.assertNotEqual(0, len(get_config('etestcomplex').items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
         conf = Configuration.objects.get(key='etestcomplex')
-        self.assertFalse('5.00' in conf._data)
+        self.assertFalse('5.00' in conf.data)
 

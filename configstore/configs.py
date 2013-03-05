@@ -27,6 +27,12 @@ class ConfigurationInstance(object):
         self.name = name
         self.form = form
 
+    def serialize(self, data):
+        return ENCODER.encode(data)
+    
+    def deserialize(self, datum):
+        return DECODER.decode(datum)
+
     def get_data(self):
         """
         Returns a dictionary like object representing the stored configuration
@@ -37,17 +43,19 @@ class ConfigurationInstance(object):
         except Configuration.DoesNotExist:
             return {}
         else:
-            return DECODER.decode(configuration.data)
+            return self.deserialize(configuration.data)
 
-    def set_data(self, data, commit=True):
+    def set_data(self, data, commit=True, site=None):
+        if site is None:
+            site = Site.objects.get_current()
         #TODO use get_or_create instead of create, look at return types and stuff
         try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
+            configuration = Configuration.objects.get(key=self.key, site=site)
         except Configuration.DoesNotExist:
             configuration = Configuration()
             configuration.key = self.key
             configuration.site = Site.objects.get_current()
-        configuration.data = ENCODER.encode(data)
+        configuration.data = self.serialize(data)
         if commit:
             configuration.save()
         return configuration
@@ -63,32 +71,15 @@ class ConfigurationInstance(object):
             return self.form(*args, **kwargs)
         return form_builder
 
-
+#do we need an IV?
 class AESEncryptedConfiguration(ConfigurationInstance):
-    def get_data(self):
-        try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
-            data = self.decrypt_data(configuration.data, configuration.site.id)
-        except Configuration.DoesNotExist:
-            return {}
-        else:
-            if not data:
-                return {}
-            return DECODER.decode(data)
+    def deserialize(self, datum):
+        data = self.decrypt_data(datum, str(settings.SITE_ID))
+        return DECODER.decode(data)
 
-    def set_data(self, data, commit=True):
-        try:
-            configuration = Configuration.objects.get(key=self.key, site=Site.objects.get_current())
-        except Configuration.DoesNotExist:
-            configuration = Configuration()
-            configuration.key = self.key
-            configuration.site = Site.objects.get_current()
+    def serialize(self, data):
         data = ENCODER.encode(data)
-        
-        configuration._data = self.encrypt_data(self.pad_string(data, AES.block_size), configuration.site.id)
-        if commit:
-            configuration.save()
-        return configuration
+        return self.encrypt_data(self.pad_string(data, AES.block_size), str(settings.SITE_ID))
 
     def encrypt_data(self, value, iv):
         iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()

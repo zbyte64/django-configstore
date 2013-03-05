@@ -1,7 +1,9 @@
 from django import forms
-
+from django.contrib.sites.models import Site
 
 class ConfigurationForm(forms.Form):
+    site = forms.ModelChoiceField(Site.objects.all())
+    
     def __init__(self, *args, **kwargs):
         self.key = kwargs.pop('key')
         self.configuration = kwargs.pop('configuration')
@@ -19,7 +21,8 @@ class ConfigurationForm(forms.Form):
 
     def save(self, commit=True):
         data = dict(self.cleaned_data)
-        return self.configuration.set_data(data, commit)
+        site = data.pop('site')
+        return self.configuration.set_data(data, commit=commit, site=site)
 
     def save_m2m(self):
         return True
