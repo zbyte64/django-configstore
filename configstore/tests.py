@@ -5,7 +5,7 @@ from django.contrib.sites.models import Site
 from django import forms
 from django.template import Template, Context
 
-from configs import ConfigurationInstance, register, get_config, CONFIG_CACHE
+from configs import ConfigurationInstance, AESEncryptedConfiguration, register, get_config, CONFIG_CACHE
 from forms import ConfigurationForm
 
 from models import Configuration
@@ -101,7 +101,7 @@ class ConfigStoreTest(TestCase):
         self.assertNotEqual(0, len(get_config('testcomplex').items()))
         self.assertNotEqual(0, len(lazydictionary_post.items()))
         conf = Configuration.objects.get(key='testcomplex')
-        self.assertTrue('5.00' in conf._data)
+        self.assertTrue('5.00' in conf.data)
 
     def test_with_config_templatetag(self):
         self.test_register_and_retrieve_config()
@@ -114,3 +114,45 @@ class ConfigStoreTest(TestCase):
         template = Template(template_string)
         result = template.render(Context({}))
         self.assertTrue('wooot' in result)
+
+class AESEncryptedConfigStoreTest(TestCase):
+    # CONSIDER: There are no views to test do we need this?
+    # urls = 'configstore.test_urls'
+
+    def setUp(self):
+        if hasattr(CONFIG_CACHE, 'etest'):
+            delattr(CONFIG_CACHE, 'etest')
+        if hasattr(CONFIG_CACHE, 'etestcomplex'):
+            delattr(CONFIG_CACHE, 'etestcomplex')
+        self.instance = AESEncryptedConfiguration('etest', 'test', TestConfigurationForm)
+        register(self.instance)
+        self.complex_instance = AESEncryptedConfiguration('etestcomplex', 'testcomplex', TestComplexConfigurationForm)
+        register(self.complex_instance)
+
+    def test_register_and_retrieve_config(self):
+        form_builder = self.instance.get_form_builder()
+        lazydictionary_post = get_config('etest')
+        form = form_builder({'setting1':'wooot', 'setting2':'2', 'site':'1'}, {})
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        lazydictionary_post._reset()
+        self.assertNotEqual(0, len(lazydictionary_post.items()))
+        self.assertNotEqual(0, len(lazydictionary_post.items()))
+
+    def test_empty_config(self):
+        lazydictionary_pre = get_config('etest')
+        self.assertEqual(0, len(lazydictionary_pre.items()))
+
+    def test_is_encrypted(self):
+        form_builder = self.complex_instance.get_form_builder()
+        lazydictionary_post = get_config('etestcomplex')
+        test_user = User.objects.get_or_create(username='testuser')[0]
+        form = form_builder({'amount': '5.00', 'user': test_user.pk, 'site': '1'}, {})
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertNotEqual(0, len(get_config('etestcomplex').items()))
+        self.assertNotEqual(0, len(lazydictionary_post.items()))
+        conf = Configuration.objects.get(key='etestcomplex')
+        self.assertFalse('5.00' in conf.data)
+
