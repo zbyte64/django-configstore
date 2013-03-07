@@ -2,6 +2,7 @@ import base64
 import threading
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
+import Crypto.Random
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -73,23 +74,24 @@ class ConfigurationInstance(object):
 
 
 class AESEncryptedConfiguration(ConfigurationInstance):
+    def get_iv(self):
+        return MD5.new("%s!%s" % (settings.SITE_ID, settings.SECRET_KEY)).digest()[:16]
+    
     def deserialize(self, datum):
-        data = self.decrypt_data(datum, str(settings.SITE_ID))
+        data = self.decrypt_data(datum, self.get_iv())
         return DECODER.decode(data)
 
     def serialize(self, data):
         data = ENCODER.encode(data)
-        return self.encrypt_data(self.pad_string(data, AES.block_size), str(settings.SITE_ID))
+        return self.encrypt_data(self.pad_string(data, AES.block_size), self.get_iv())
 
     def encrypt_data(self, value, iv):
-        iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()
         enc = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)  # Guess why :32?
         value = enc.encrypt(self.pad_string(value, AES.block_size))
         return base64.b64encode(value)
 
     def decrypt_data(self, value, iv):
         value = base64.b64decode(value)
-        iv = MD5.new("%s!%s" % (iv, settings.SECRET_KEY)).digest()
         dec = AES.new(settings.SECRET_KEY[:32], AES.MODE_CBC, iv)
         return dec.decrypt(value).strip()
 
@@ -98,6 +100,23 @@ class AESEncryptedConfiguration(ConfigurationInstance):
         missing = block_size - (str_size % block_size)
         return str(string) + missing * b" "
 
+class AESRandomIVEncryptedConfiguration(AESEncryptedConfiguration):
+    """
+    Randomly generates an IV for each save
+    """
+    def get_iv(self):
+        return Crypto.Random.get_random_bytes(12).encode('base64')[:16]
+    
+    def deserialize(self, datum):
+        iv, datum = datum.split('!', 2)
+        data = self.decrypt_data(datum, iv)
+        return DECODER.decode(data)
+
+    def serialize(self, data):
+        iv = self.get_iv()
+        data = ENCODER.encode(data)
+        datum = self.encrypt_data(self.pad_string(data, AES.block_size), iv)
+        return '%s!%s' % (iv, datum)
 
 def _wrap(func_name):
     #TODO perserve docs and function name
