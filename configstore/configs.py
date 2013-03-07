@@ -71,7 +71,7 @@ class ConfigurationInstance(object):
             return self.form(*args, **kwargs)
         return form_builder
 
-#do we need an IV?
+
 class AESEncryptedConfiguration(ConfigurationInstance):
     def deserialize(self, datum):
         data = self.decrypt_data(datum, str(settings.SITE_ID))
@@ -96,7 +96,7 @@ class AESEncryptedConfiguration(ConfigurationInstance):
     def pad_string(self, string, block_size):
         str_size = len(string)
         missing = block_size - (str_size % block_size)
-        return str(string) + missing * u" "
+        return str(string) + missing * b" "
 
 
 def _wrap(func_name):
