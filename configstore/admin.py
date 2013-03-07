@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
@@ -9,6 +10,7 @@ from django import template
 from models import Configuration
 from configs import CONFIGS
 
+
 class ConfigurationAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'site')
 
@@ -16,8 +18,13 @@ class ConfigurationAdmin(admin.ModelAdmin):
 
     def run_setup(self, request, queryset):
         for item in queryset:
-            setup_task = CONFIGS.get(item.key).form.config_task
-            self.message_user(request, setup_task(item))
+            conf = Configuration.objects.get(key=item.key)
+            form = CONFIGS[item.key].form(instance=conf, key=item.key)
+            r = form.config_task()
+            if isinstance(r, HttpResponse):
+                return r
+            else:
+                self.message_user(request, r)
     run_setup.short_description = "Run the setup task for the configuration"
 
     def get_fieldsets(self, request, obj=None):

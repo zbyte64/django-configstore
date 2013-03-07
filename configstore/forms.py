@@ -1,44 +1,33 @@
 from django import forms
-from django.utils import simplejson
 from django.contrib.sites.models import Site
-from django.core.serializers.json import DjangoJSONEncoder
 
-from models import Configuration
-
-class ConfigurationForm(forms.ModelForm):
+class ConfigurationForm(forms.Form):
+    site = forms.ModelChoiceField(Site.objects.all())
+    
     def __init__(self, *args, **kwargs):
         self.key = kwargs.pop('key')
+        self.configuration = kwargs.pop('configuration')
+        self.instance = kwargs.pop('instance', None)
         super(ConfigurationForm, self).__init__(*args, **kwargs)
         if self.instance:
-            initial = self.instance.data
+            self.initial['site'] = self.instance.site.pk
+        self._original_data = self.configuration.get_data()
+        if self._original_data:
             # model based fields don't know what to due with objects,
             # but they do know what to do with pks
-            for key, value in initial.items():
+            for key, value in self._original_data.items():
                 if hasattr(value, 'pk'):
-                    initial[key] = value.pk
-            self.initial.update(initial)
+                    value = value.pk
+                self.initial[key] = value
 
     def save(self, commit=True):
-        instance = super(ConfigurationForm, self).save(False)
         data = dict(self.cleaned_data)
-        del data['site']
-        instance.data = data
-        instance.key = self.key
-        if commit:
-            instance.save()
-        return instance
+        site = data.pop('site')
+        return self.configuration.set_data(data, commit=commit, site=site)
 
-    class Meta:
-        model = Configuration
-        fields = ['site']
+    def save_m2m(self):
+        return True
 
-    @staticmethod
-    def config_task(configuration):
-        """
-        Params:
-            configuration - Instance of django-configstore.models.Configuration
+    def config_task(self):
+        return "No configuration action defined for %s" % self.key
 
-        Return:
-            Message to be echo'ed back to the user through "message_user".
-        """
-        return "No task defined for %s." % configuration.name

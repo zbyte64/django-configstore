@@ -53,8 +53,8 @@ class DecimalHandler(Handler):
     instancetype = Decimal
     
     def encode(self, obj):
-        return {'__type__':self.key,
-                'value':str(obj)}
+        return {'__type__': self.key,
+                'value': str(obj)}
     
     def decode(self, dct):
         return Decimal(dct['value'])
