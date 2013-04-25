@@ -5,7 +5,7 @@ LONG_DESCRIPTION = """
 An application to allow for other apps to easily store site based configurations
 """
 
-VERSION = "0.1"
+VERSION = "0.3"
 
 setup(name='django-configstore',
       version=VERSION,
@@ -13,7 +13,7 @@ setup(name='django-configstore',
       long_description=LONG_DESCRIPTION,
       author='Jason Kraus',
       author_email='zbyte64@gmail.com',
-      url='http://github.com/cuker/django-configstore',
+      url='http://github.com/webcube/django-configstore',
       packages=find_packages(exclude=['ez_setup', 'test', 'tests']),
       test_suite='tests.runtests.runtests',
       tests_require=(
@@ -22,6 +22,9 @@ setup(name='django-configstore',
         'django',
         'nose',
         'django-nose',
+      ),
+      install_requires=(
+        'pycrypto==2.6',
       ),
       include_package_data=True,
       license = 'BSD',
